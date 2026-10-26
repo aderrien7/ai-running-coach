@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Running Coach</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e8eaf6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a1d2e;
+      border-bottom: 1px solid #2d3149;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .logo { font-size: 1.4rem; }
+    h1 { font-size: 1.1rem; font-weight: 600; color: #a78bfa; }
+    .subtitle { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+    .header-actions { display: flex; gap: 8px; }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-strava { background: #fc4c02; color: white; }
+    .btn-clear  { background: #374151; color: #9ca3af; }
+    .btn-logout { background: #1f2937; color: #6b7280; border: 1px solid #374151; }
+
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .message { display: flex; gap: 12px; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .message.user .avatar      { background: #312e81; }
+    .message.assistant .avatar { background: #1e3a5f; }
+
+    .bubble {
+      background: #1a1d2e;
+      border-radius: 12px;
+      padding: 12px 16px;
+      max-width: 680px;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      border: 1px solid #2d3149;
+    }
+    .message.user { flex-direction: row-reverse; }
+    .message.user .bubble { background: #1e1b4b; border-color: #3730a3; }
+
+    .bubble strong { color: #a78bfa; }
+    .bubble code {
+      background: #0f1117;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 0.85em;
+    }
+
+    .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #6b7280; animation: bounce 1.2s infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+    #input-area {
+      border-top: 1px solid #2d3149;
+      padding: 16px 20px;
+      background: #0f1117;
+      flex-shrink: 0;
+    }
+    .input-row {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    textarea {
+      flex: 1;
+      background: #1a1d2e;
+      border: 1px solid #2d3149;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #e8eaf6;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+      max-height: 160px;
+      min-height: 48px;
+      line-height: 1.5;
+      transition: border-color 0.15s;
+    }
+    textarea:focus { border-color: #7c3aed; }
+    textarea::placeholder { color: #4b5563; }
+
+    #send-btn {
+      background: #7c3aed;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      width: 44px; height: 44px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #send-btn:hover    { background: #6d28d9; }
+    #send-btn:disabled { background: #374151; cursor: not-allowed; }
+
+    .auth-banner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      text-align: center;
+      padding: 40px;
+    }
+    .auth-banner .icon { font-size: 4rem; }
+    .auth-banner h2    { font-size: 1.4rem; color: #a78bfa; }
+    .auth-banner p     { color: #6b7280; max-width: 360px; line-height: 1.6; }
+    .btn-auth-big {
+      background: #fc4c02; color: white;
+      padding: 13px 28px; border-radius: 10px;
+      border: none; cursor: pointer;
+      font-size: 1rem; font-weight: 600;
+    }
+    .btn-auth-big:hover { opacity: 0.88; }
+
+    #error-toast {
+      position: fixed; bottom: 90px; right: 20px;
+      background: #7f1d1d; color: #fca5a5;
+      border: 1px solid #b91c1c;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: 0.85rem; display: none; z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="logo">🏃</span>
+    <div>
+      <h1>Running Coach</h1>
+      <div class="subtitle">
+        {% if backend == "ollama" %}🦙 {{ ollama_model }} (local){% else %}✦ Claude + Strava{% endif %}
+      </div>
+    </div>
+  </div>
+  {% if authenticated %}
+  <div class="header-actions">
+    <button class="btn btn-clear" onclick="clearHistory()">Clear chat</button>
+    <button class="btn btn-logout" onclick="location.href='/auth/logout'">Disconnect Strava</button>
+  </div>
+  {% endif %}
+</header>
+
+{% if not authenticated %}
+<div class="auth-banner">
+  <div class="icon">🔗</div>
+  <h2>Connect your Strava account</h2>
+  <p>Your coach needs access to your training data to give you personalised advice.</p>
+  <button class="btn-auth-big" onclick="location.href='/auth/strava'">Connect with Strava</button>
+</div>
+
+{% else %}
+<div id="chat-container"></div>
+<div id="input-area">
+  <div class="input-row">
+    <textarea id="msg-input" placeholder="Ask your coach… e.g. Analyse my last week of training" rows="1"></textarea>
+    <button id="send-btn" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+{% endif %}
+
+<div id="error-toast"></div>
+
+<script>
+const chatEl  = document.getElementById('chat-container');
+const inputEl = document.getElementById('msg-input');
+const sendBtn = document.getElementById('send-btn');
+
+if (inputEl) {
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+  });
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmt(text) {
+  return escHtml(text)
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function addMsg(role, content) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `<div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+                   <div class="bubble">${fmt(content)}</div>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.id = 'typing'; div.className = 'message assistant';
+  div.innerHTML = `<div class="avatar">🤖</div>
+    <div class="bubble"><div class="typing-indicator">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div></div>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function hideTyping() { document.getElementById('typing')?.remove(); }
+
+function showError(msg) {
+  const t = document.getElementById('error-toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 4000);
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || sendBtn.disabled) return;
+  inputEl.value = ''; inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+  addMsg('user', text);
+  showTyping();
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text}),
+    });
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, {stream: true});
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        if (!part.startsWith('data: ')) continue;
+        const data = JSON.parse(part.slice(6));
+        hideTyping();
+        if (data.error) showError(data.error);
+        else if (data.text) addMsg('assistant', data.text);
+      }
+    }
+  } catch (e) {
+    hideTyping();
+    showError('Connection error: ' + e.message);
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('Clear the entire conversation?')) return;
+  await fetch('/api/clear', {method: 'POST'});
+  chatEl.innerHTML = '';
+}
+
+async function loadHistory() {
+  const msgs = await fetch('/api/history').then(r => r.json());
+  if (msgs.length === 0) {
+    addMsg('assistant',
+      "Hi! I'm your personal running coach 🏃\n\n" +
+      "I can analyse your Strava activities, track your progress, and give " +
+      "personalised advice.\n\nWhat would you like to work on today?");
+  } else {
+    msgs.forEach(m => addMsg(m.role, m.content));
+  }
+}
+
+{% if authenticated %}loadHistory();{% endif %}
+</script>
+
+</body>
+</html>
