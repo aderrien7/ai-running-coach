@@ -7,22 +7,28 @@ LLM_BACKEND (set in .env):
 Start:  python app.py
 """
 
+import asyncio
+import json
 import os
 import sys
-import json
-import asyncio
-from flask import Flask, render_template, request, redirect, jsonify, Response
 
 from dotenv import load_dotenv
+from flask import Flask, Response, jsonify, redirect, render_template, request
+
 load_dotenv()
 
 import anthropic
-from openai import OpenAI
 from mcp import ClientSession
-from mcp.client.stdio import stdio_client, StdioServerParameters
+from mcp.client.stdio import StdioServerParameters, stdio_client
+from openai import OpenAI
 
 from mcp_strava.strava_client import (
-    init_db, get_token, save_token, get_auth_url, exchange_code, get_db,
+    exchange_code,
+    get_auth_url,
+    get_db,
+    get_token,
+    init_db,
+    save_token,
 )
 
 app = Flask(__name__)
@@ -88,7 +94,7 @@ def _mcp_params() -> StdioServerParameters:
 async def _chat_claude(user_message: str) -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-    async with stdio_client(_mcp_params()) as (read, write):
+    async with stdio_client(_mcp_params()) as (read, write):  # noqa: SIM117
         async with ClientSession(read, write) as mcp_session:
             await mcp_session.initialize()
             tools_result = await mcp_session.list_tools()
@@ -151,7 +157,7 @@ async def _chat_claude(user_message: str) -> str:
 async def _chat_ollama(user_message: str) -> str:
     client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
 
-    async with stdio_client(_mcp_params()) as (read, write):
+    async with stdio_client(_mcp_params()) as (read, write):  # noqa: SIM117
         async with ClientSession(read, write) as mcp_session:
             await mcp_session.initialize()
             tools_result = await mcp_session.list_tools()
@@ -271,7 +277,7 @@ def chat():
             save_message("user", user_message)
             save_message("assistant", reply)
             yield f"data: {json.dumps({'text': reply, 'done': True})}\n\n"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             yield f"data: {json.dumps({'error': str(exc), 'done': True})}\n\n"
 
     return Response(

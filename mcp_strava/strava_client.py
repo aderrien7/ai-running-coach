@@ -1,8 +1,9 @@
 """Strava OAuth2 client and REST API wrapper."""
 
 import os
-import time
 import sqlite3
+import time
+
 import requests
 
 STRAVA_AUTH_URL = "https://www.strava.com/oauth/authorize"

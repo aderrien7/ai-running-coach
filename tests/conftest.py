@@ -1,8 +1,7 @@
 """Shared pytest fixtures."""
 
-import os
-import tempfile
 import pytest
+
 
 # Point the app at a temp DB so tests never touch a real coach.db
 @pytest.fixture(autouse=True)

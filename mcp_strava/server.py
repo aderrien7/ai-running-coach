@@ -9,9 +9,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from mcp import types
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-import mcp.types as types
+
 from mcp_strava.strava_client import api_get
 
 server = Server("strava-coach")
@@ -100,7 +101,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     try:
         result = _dispatch(name, arguments)
         return [types.TextContent(type="text", text=result)]
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return [types.TextContent(type="text", text=f"Error: {exc}")]
 
 

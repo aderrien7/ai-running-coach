@@ -1,14 +1,13 @@
 """Tests for Strava OAuth2 flow and token management."""
 
 import time
-import pytest
-from unittest.mock import patch, MagicMock
-
+from unittest.mock import MagicMock, patch
 
 # ── DB initialisation ──────────────────────────────────────────────────────
 
 def test_init_db_creates_tables(tmp_db):
     import sqlite3
+
     from mcp_strava.strava_client import init_db
     init_db()
     conn = sqlite3.connect(str(tmp_db))
@@ -21,7 +20,7 @@ def test_init_db_creates_tables(tmp_db):
 # ── Token storage ──────────────────────────────────────────────────────────
 
 def test_save_and_get_token(tmp_db):
-    from mcp_strava.strava_client import init_db, save_token, get_token
+    from mcp_strava.strava_client import get_token, init_db, save_token
     init_db()
     future = int(time.time()) + 3600
     save_token("acc_123", "ref_456", future, athlete_id=42)
@@ -32,13 +31,13 @@ def test_save_and_get_token(tmp_db):
 
 
 def test_get_token_returns_none_when_empty(tmp_db):
-    from mcp_strava.strava_client import init_db, get_token
+    from mcp_strava.strava_client import get_token, init_db
     init_db()
     assert get_token() is None
 
 
 def test_save_token_replaces_previous(tmp_db):
-    from mcp_strava.strava_client import init_db, save_token, get_token
+    from mcp_strava.strava_client import get_token, init_db, save_token
     init_db()
     future = int(time.time()) + 3600
     save_token("old_token", "old_ref", future)
@@ -49,7 +48,7 @@ def test_save_token_replaces_previous(tmp_db):
 # ── Token refresh ──────────────────────────────────────────────────────────
 
 def test_refresh_not_needed_when_token_valid(tmp_db):
-    from mcp_strava.strava_client import init_db, save_token, refresh_token_if_needed
+    from mcp_strava.strava_client import init_db, refresh_token_if_needed, save_token
     init_db()
     future = int(time.time()) + 7200
     save_token("valid_token", "ref", future)
@@ -58,7 +57,7 @@ def test_refresh_not_needed_when_token_valid(tmp_db):
 
 
 def test_refresh_performed_when_token_expired(tmp_db):
-    from mcp_strava.strava_client import init_db, save_token, refresh_token_if_needed
+    from mcp_strava.strava_client import init_db, refresh_token_if_needed, save_token
     init_db()
     past = int(time.time()) - 100  # already expired
     save_token("expired_token", "old_ref", past)

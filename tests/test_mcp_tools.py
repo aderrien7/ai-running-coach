@@ -1,7 +1,8 @@
 """Tests for the 5 MCP tools using mocked Strava API responses."""
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -70,7 +71,7 @@ def test_get_recent_activities_caps_per_page():
     from mcp_strava.server import _dispatch
     with patch("mcp_strava.server.api_get", return_value=[]) as mock_get:
         _dispatch("get_recent_activities", {"per_page": 999})
-        _, kwargs = mock_get.call_args
+        _, _kwargs = mock_get.call_args
         assert mock_get.call_args[0][1]["per_page"] == 30
 
 
